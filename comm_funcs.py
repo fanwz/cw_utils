@@ -7,6 +7,7 @@ from traceback import TracebackException
 ACTION_DATE = time.strftime("%Y-%m-%d", time.localtime())
 ACTION_DATE_INT = int(time.strftime("%Y%m%d", time.localtime()))
 
+
 def get_file_list(tg_dir):
     list = []
     for (dirpath, dirnames, filenames) in os.walk(tg_dir):
@@ -118,3 +119,48 @@ def get_exception_msg(etype, value, tb, limit=None, file=None, chain=True):
         msg += line
 
     return msg
+
+
+class RemoteHub(object):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def push(self, data):
+        raise NotImplementedError
+
+
+class RemoteServer(RemoteHub):
+    '''
+    "remote_hub" : {
+      "Type" : "SSH",
+      "IP" : "123.0.6.1",
+      "Port" : "23333",
+      "User" : "test",
+      "Password" : "test",
+      "recv_dir" : "/data/"
+   }
+    '''
+
+    def __init__(self, remote_config) -> None:
+        super().__init__()
+        self.srv_type = remote_config["Type"]
+        if self.srv_type.upper() == "SSH":
+            self.ip = remote_config["IP"]
+            self.port = remote_config["Port"]
+            self.user = remote_config["User"]
+            self.password = remote_config["Password"]
+            self.recv_dir = remote_config["recv_dir"]
+        else:
+            print("remote server type {} is not support!".format(self.srv_type))
+
+    def push(self, data):
+        if self.srv_type.upper() == "SSH":
+            cmd = 'rsync -avzP -e \'ssh -p {0}\' {1} {2}:{3}'.format(self.port,
+                                                                     data, self.ip, self.recv_dir)
+            ret = os.system(cmd)
+            if ret == 0:
+                print("push file sucess")
+            else:
+                print("push file error.ret={}".format(ret))
+        else:
+            print("remote server type {} is not support!".format(self.srv_type))
