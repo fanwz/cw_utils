@@ -82,9 +82,43 @@ class JsonMod(object):
     def __save_conf(self):
         saveconfig(self.conf_data, self.conf_file)
 
+    def move_json_key_value(self, loc, move_key, move_index, save=True):
+        curr_level = self.__location(loc)
+        if curr_level is None:
+            return
+
+        data = curr_level
+
+        if move_key not in data:
+            # 如果move_key在JSON文件中不存在，则不进行任何操作
+            return self.conf_data
+
+        # 将 move_key 对应的键值对从原来的位置删除
+        move_value = data.pop(move_key)
+
+        # 将 move_key 对应的键值对插入到指定位置
+        data_list = list(data.items())
+        data_list.insert(move_index, (move_key, move_value))
+
+        # new_data = collections.OrderedDict(data_list)
+        # # update do not keep the new dict order
+        # data.update(new_data)
+
+        # 在传入的 json_data 中直接更新键值顺序
+        for index, (key, value) in enumerate(data_list):
+            if index == move_index:
+                data[move_key] = move_value
+            else:
+                old_key, old_value = data.popitem(last=False)
+                data[old_key] = old_value
+
+        # print(data)
+        if save:
+            self.__save_conf()
+
     # loc:the location of target para.use list for store one by one level.
     # new_kv:new key-value pair.use object
-    def add_new_para(self, loc, new_kv):
+    def add_new_para(self, loc, new_kv, save=True):
         curr_level = self.__location(loc)
         if curr_level is None:
             return
@@ -94,11 +128,13 @@ class JsonMod(object):
         # print(key, value)
         curr_level[key] = value
         # print(self.conf_data)
-        self.__save_conf()
+        
+        if save:
+            self.__save_conf()
 
     # loc:the location of target para.use list for store one by one level.
     # kv:key-value pair.use object. must check the key is exist!
-    def change_value(self, loc, kv):
+    def change_value(self, loc, kv, save=True):
         curr_level = self.__location(loc)
         if curr_level is None:
             return
@@ -111,7 +147,8 @@ class JsonMod(object):
             return
         curr_level[key] = value
 
-        self.__save_conf()
+        if save:
+            self.__save_conf()
 
     # loc:the location of target para.use list for store one by one level.
     # key:the key need to get value

@@ -70,6 +70,16 @@ def get_package_temp():
         return None
 
 
+def get_disk_space(path) -> str:
+    # get disk usage statistics
+    disk = psutil.disk_usage(path)
+
+    free_bytes = disk.free
+    free_GB = disk.free // (2**30)
+
+    return free_bytes
+
+
 def is_number(s, isfloat=False):
     if isfloat:
         try:
@@ -119,6 +129,18 @@ def get_exception_msg(etype, value, tb, limit=None, file=None, chain=True):
         msg += line
 
     return msg
+
+
+def msg_color(msg, color: str):
+    c = color.upper()
+    if c == 'Y' or c == 'YELLOW':
+        return '\033[1;33m{}\033[0m'.format(msg)
+    elif c == 'R' or c == 'RED':
+        return '\033[1;31m{}\033[0m'.format(msg)
+    elif c == 'G' or c == 'GREEN':
+        return '\033[1;32m{}\033[0m'.format(msg)
+    elif c == 'B' or c == 'BLUE':
+        return '\033[1;34m{}\033[0m'.format(msg)
 
 
 class RemoteHub(object):
