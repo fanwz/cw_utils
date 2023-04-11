@@ -143,6 +143,48 @@ def msg_color(msg, color: str):
         return '\033[1;34m{}\033[0m'.format(msg)
 
 
+def parse_string_to_int_list(input_str):
+    # code by chatgpt3.5
+    '''
+    prompt:解析字串转成int 型数组。支持多种类型的转换，例如"2-10" 这样形式的转换成[2,3,4,5,6,7,8,9,10]。如“1-2,5”则转换成[1,2,5]。如“3,5”，则转换成[3,5]。并且支持非法字符检查
+    '''
+    # 用于存储结果的列表
+    result = []
+
+    # 将输入字符串按逗号分隔成多个子字符串
+    sub_strings = input_str.split(",")
+
+    # 循环处理每个子字符串
+    for sub_str in sub_strings:
+        # 如果子字符串包含连字符，则将其视为范围
+        if "-" in sub_str:
+            range_parts = sub_str.split("-")
+            # 确保分割后只有两个元素
+            if len(range_parts) != 2:
+                raise ValueError("Invalid range: {}".format(sub_str))
+
+            # 将范围转换为整数
+            start = int(range_parts[0])
+            end = int(range_parts[1])
+
+            # 确保范围有效
+            if start >= end:
+                raise ValueError("Invalid range: {}".format(sub_str))
+
+            # 将范围内的整数添加到结果列表中
+            for i in range(start, end+1):
+                result.append(i)
+        else:
+            # 如果子字符串不包含连字符，则将其视为单个整数
+            try:
+                num = int(sub_str)
+                result.append(num)
+            except ValueError:
+                raise ValueError("Invalid integer: {}".format(sub_str))
+
+    return result
+
+
 class RemoteHub(object):
     def __init__(self) -> None:
         super().__init__()
