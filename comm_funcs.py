@@ -131,16 +131,29 @@ def get_exception_msg(etype, value, tb, limit=None, file=None, chain=True):
     return msg
 
 
-def msg_color(msg, color: str):
+def msg_color(msg, color="default", attr=1):
+    '''
+    attr:
+    0 - 终止 attributive 属性
+    1 - 开始 attributive 属性
+    2 - 闪烁
+    3 - 下划线
+    4 - 粗体
+    5 - 闪烁下划线
+    7 - 反向
+    8 - 隐体
+    '''
     c = color.upper()
     if c == 'Y' or c == 'YELLOW':
-        return '\033[1;33m{}\033[0m'.format(msg)
+        return '\033[{};33m{}\033[0m'.format(attr, msg)
     elif c == 'R' or c == 'RED':
-        return '\033[1;31m{}\033[0m'.format(msg)
+        return '\033[{};31m{}\033[0m'.format(attr, msg)
     elif c == 'G' or c == 'GREEN':
-        return '\033[1;32m{}\033[0m'.format(msg)
+        return '\033[{};32m{}\033[0m'.format(attr, msg)
     elif c == 'B' or c == 'BLUE':
-        return '\033[1;34m{}\033[0m'.format(msg)
+        return '\033[{};34m{}\033[0m'.format(attr, msg)
+    else:
+        return msg
 
 
 def parse_string_to_int_list(input_str):
