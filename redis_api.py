@@ -1,6 +1,7 @@
 import redis
 import json
 import threading
+import time
 from cryptography.fernet import Fernet
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 
@@ -59,15 +60,31 @@ class RedisApi():
         else:
             print("publish fail!")
 
-    def subscribe(self, channel, callback):
+    def subscribe(self, channel, callback, sleep=0.001):
         pubsub = self.s.pubsub()
         pubsub.subscribe(
             **{channel: lambda message: callback(message["data"])})
 
         def run_pubsub(pubsub_instance):
-            pubsub_instance.run_in_thread(sleep_time=0.001)
+            pubsub_instance.run_in_thread(sleep_time=sleep)
 
         pubsub_thread = threading.Thread(target=run_pubsub, args=(pubsub,))
+        pubsub_thread.start()
+
+    def subscribe(self, channel, callback, stop_event, sleep=0.001):
+        pubsub = self.s.pubsub()
+        pubsub.subscribe(
+            **{channel: lambda message: callback(message["data"])})
+
+        def run_pubsub(pubsub_instance):
+            while not stop_event.is_set():
+                message = pubsub_instance.get_message()
+                if message:
+                    callback(message['data'])
+                time.sleep(sleep)
+
+        pubsub_thread = threading.Thread(target=run_pubsub, args=(pubsub,))
+        pubsub_thread.daemon = True
         pubsub_thread.start()
 
     def subscribe_decorator(self, channel):
