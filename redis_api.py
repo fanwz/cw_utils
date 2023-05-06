@@ -94,6 +94,52 @@ class RedisApi():
             return wrapper
         return decorator
 
+    def update_hashtable(self, hash, key, value):
+        ret = self.s.hset(hash, key, value)
+        if ret != 1 and ret != 0:
+            print("update hashtable error!ret={},hash={},key={},value={}".format(
+                ret, hash, key, value))
+
+    def get_from_hashtable(self, hash, *keys):
+        if len(keys) == 1:
+            return self.s.hget(hash, keys[0])
+        elif len(keys) > 1:
+            return self.s.hmget(hash, *keys)
+        else:
+            return self.s.hgetall(hash)
+
+    def get_hash_keys(self, hash):
+        return self.s.hkeys(hash)
+
+    def delete_hashtable(self, hash):
+        ret = self.s.delete(hash)
+        if ret != 1:
+            print("delete hash fail!ret={},hash={}".format(ret, hash))
+
+    def delete_from_hashtable(self, hash, *keys):
+        if len(keys) == 1:
+            ret = self.s.hdel(hash, keys[0])
+        elif len(keys) > 1:
+            ret = self.s.hdel(hash, *keys)
+        else:
+            ret = self.s.delete(hash)
+
+        if ret == 0:
+            print("nothing delete.hash={},keys={}".format(hash, keys))
+
+    def polling_hashtable(self, hashtable, callback, stop_event, sleep=1):
+        def run_polling(api, hashtable):
+            while not stop_event.is_set():
+                message = api.get_from_hashtable(hashtable)
+                if message:
+                    callback(message)
+                time.sleep(sleep)
+
+        polling_thread = threading.Thread(
+            target=run_polling, args=(self, hashtable,))
+        polling_thread.daemon = True
+        polling_thread.start()
+
 
 if __name__ == "__main__":
     print(generate_key())
