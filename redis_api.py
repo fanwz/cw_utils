@@ -136,9 +136,14 @@ class RedisApi():
     def polling_hashtable(self, hashtable, callback, stop_event, sleep=1):
         def run_polling(api, hashtable):
             while not stop_event.is_set():
-                message = api.get_from_hashtable(hashtable)
-                if message:
-                    callback(message)
+                try:
+                    message = api.get_from_hashtable(hashtable)
+                    if message:
+                        callback(message, True)
+                except Exception as e:
+                    msg = "redis get hashtable fail!({})".format(e)
+                    callback({"msg": msg, "ts": time.strftime(
+                        "%Y-%m-%d %H:%M:%S", time.localtime())}, False)
                 time.sleep(sleep)
 
         polling_thread = threading.Thread(
