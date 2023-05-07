@@ -53,6 +53,12 @@ class RedisApi():
                              password=config['password'],
                              db=0)
 
+    def check_connection(self):
+        try:
+            return self.s.ping()
+        except redis.ConnectionError:
+            return False
+
     def publish_data(self, channel, data):
         ret = self.s.publish(channel, data)
         if ret > 0:
