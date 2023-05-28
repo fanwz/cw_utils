@@ -131,6 +131,104 @@ def get_exception_msg(etype, value, tb, limit=None, file=None, chain=True):
     return msg
 
 
+class HtmlTableGenerator(object):
+    style_bg_false = 'background:#ffcc00;'
+    style_bg_abnormal = 'background:#ff1a1a;'
+
+    def __init__(self, header: list) -> None:
+        super().__init__()
+
+        self.style_tb = 'font-family: verdana,arial,sans-serif;font-size:16px;color:#333333;border-width: 1px;border-collapse: collapse;'
+        self.style_tb_tr = 'text-align:center;'
+        self.style_tb_th = 'border-width: 1px;padding: 6px;border-style: solid;border-color: #999999;text-align:center;'
+        self.style_tb_td = 'border-width: 1px;padding: 2px 6px 2px 6px;border-style: solid;border-color: #999999;font-size:16px;'
+
+        self.col_len = len(header)
+
+        # build header line with input header list
+        header_line = '<th style="{th}">' + '''</th>
+                        <th style="{th}">'''.join(header) + '</th>'
+
+        # init html text front with header_line
+        self.html_text = '''
+        <table border="1" style="{tb}">
+        <thead>
+        <tr style="{tr}">
+        {hl}
+        </tr>
+        </thead>
+        <tbody>
+        '''.format(tb=self.style_tb, tr=self.style_tb_tr, hl=header_line)
+
+        # fill th with style
+        self.html_text = self.html_text.format(th=self.style_tb_th)
+
+    def add_one_line(self, line: list, last_line=False):
+        if len(line) != self.col_len:
+            print("line len is not match.input len is {},col len is {}",
+                  len(line), self.col_len)
+            return
+
+        self.html_text += '<tr style="{st}">'.format(st=self.style_tb_tr)
+        for i in range(len(line)):
+            l = line[i]
+
+            if i == 0:
+                self.html_text += '<th style="{st}">{v}</th>'.format(
+                    st=self.style_tb_th, v=l)
+                continue
+
+            style = self.style_tb_td
+            if isinstance(line[i], tuple):
+                d = l[0]
+                style += " " + l[1]
+            else:
+                d = l
+
+            self.html_text += '<td style="{st}">{v}</td>'.format(st=style, v=d)
+
+        self.html_text += "</tr>"
+
+        if last_line:
+            self.html_text += '''  </tbody>
+                    </table>
+                '''
+
+    def get_html_text(self):
+        return self.html_text
+
+    def show_html_text(self):
+        print(self.html_text)
+
+
+class HtmlTextGenerator(object):
+    C_YELLOW = "color:#ffcc00;"
+    C_GREEN = "color:#00ff00;"
+    C_RED = "color:#E53333;"
+    C_BLUE = "color:#0000ff;"
+
+    def __init__(self) -> None:
+        self.html_text = ""
+
+    def get_color(msg, color: str):
+        c = color.upper()
+        if c == 'Y' or 'YELLOW':
+            return HtmlTextGenerator.C_YELLOW
+        elif c == 'R' or 'RED':
+            return HtmlTextGenerator.C_RED
+        elif c == 'G' or 'GREEN':
+            return HtmlTextGenerator.C_GREEN
+        elif c == 'B' or 'BLUE':
+            return HtmlTextGenerator.C_BLUE
+
+    def add_text(self, text, style=""):
+        self.html_text += '<span style="{}">{}</span><br>\n'.format(
+            style, text)
+
+    def get_html_text(self):
+        return self.html_text
+
+
 def msg_color(msg, color="default", attr=1):
     '''
     attr:
