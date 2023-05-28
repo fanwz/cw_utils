@@ -37,7 +37,6 @@ class MailNotify(object):
 
         # Email header content
         msg['Subject'] = subject
-        # msg['From'] = _format_addr(u'QQ小号 <%s>' % from_addr)
         msg['From'] = _format_addr('{} <{}>'.format(self.from_name, from_addr))
         msg['To'] = ";".join(to_list)
 
