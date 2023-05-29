@@ -26,8 +26,8 @@ def get_dir_list(tg_dir):
     return list
 
 
-def get_timestamp():
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+def get_timestamp(fmt="%Y-%m-%d %H:%M:%S"):
+    return time.strftime(fmt, time.localtime())
 
 
 def get_all_processes(filter_str, by="name"):
