@@ -11,6 +11,21 @@ def generate_key():
     # generate Fernet key
     return Fernet.generate_key()
 
+def encrypt_str_data(str_data, key):
+    # generate by chatgpt-4
+    # encrypt string data
+    f = Fernet(key)
+    str_bytes = str_data.encode("utf-8")
+    encrypted_str = f.encrypt(str_bytes)
+    return encrypted_str
+
+def decrypt_str_data(encrypted_str, key):
+    # generate by chatgpt-4
+    # decrypt string data
+    f = Fernet(key)
+    decrypted_str_bytes = f.decrypt(encrypted_str)
+    decrypted_str = decrypted_str_bytes.decode("utf-8")
+    return decrypted_str
 
 def encrypt_json_data(json_data, key):
     # generate by chatgpt-4
