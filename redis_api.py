@@ -121,6 +121,28 @@ class RedisApi():
             print("update hashtable error!ret={},hash={},key={},value={}".format(
                 ret, hash, key, value))
 
+    def get_all_keys(self):
+        return self.s.keys("*")
+    
+    def get_all_keys_and_show(self):
+        for key in self.get_all_keys():
+            rtype = self.s.type(key).decode('utf-8')
+            print(rtype)
+            if rtype == 'string':
+                value = self.s.get(key)
+            elif rtype == 'hash':
+                value = self.s.hgetall(key)
+            elif rtype == 'list':
+                value = self.s.lrange(key, 0, -1)
+            elif rtype == 'set':
+                value = self.s.smembers(key)
+            elif rtype == 'zset':
+                value = self.s.zrange(key, 0, -1, withscores=True)
+            else:
+                value = 'unkown type'
+
+            print(f"{key}: {value}")
+
     def get_from_hashtable(self, hash, *keys):
         if len(keys) == 1:
             return self.s.hget(hash, keys[0])
