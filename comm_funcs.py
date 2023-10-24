@@ -324,14 +324,18 @@ class RemoteServer(RemoteHub):
             self.port = remote_config["Port"]
             self.user = remote_config["User"]
             self.password = remote_config["Password"]
+            if "RSAKey" in remote_config.keys():
+                self.rsakey = remote_config["RSAKey"]
+            else:
+                self.rsakey = "~/.ssh/id_rsa"
             self.recv_dir = remote_config["recv_dir"]
         else:
             print("remote server type {} is not support!".format(self.srv_type))
 
     def push(self, data):
         if self.srv_type.upper() == "SSH":
-            cmd = 'rsync -avzP -e \'ssh -p {0}\' {1} {2}:{3}'.format(self.port,
-                                                                     data, self.ip, self.recv_dir)
+            cmd = 'rsync -avzP --timeout=30 -e \'ssh -i {5} -p {0}\' {1} {4}@{2}:{3}'.format(self.port,
+                                                                                         data, self.ip, self.recv_dir, self.user, self.rsakey)
             ret = os.system(cmd)
             if ret == 0:
                 print("push file sucess")

@@ -169,6 +169,9 @@ class RedisApi():
 
         if ret == 0:
             print("nothing delete.hash={},keys={}".format(hash, keys))
+    
+    def clear_all_data(self):
+        self.s.flushall()
 
     def polling_hashtable(self, hashtable, callback, stop_event, sleep=1):
         def run_polling(api, hashtable):
