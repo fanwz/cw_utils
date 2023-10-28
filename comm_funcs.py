@@ -3,6 +3,7 @@ import psutil
 import sys
 import os
 from traceback import TracebackException
+import logging
 
 ACTION_DATE = time.strftime("%Y-%m-%d", time.localtime())
 ACTION_DATE_INT = int(time.strftime("%Y%m%d", time.localtime()))
@@ -335,7 +336,7 @@ class RemoteServer(RemoteHub):
     def push(self, data):
         if self.srv_type.upper() == "SSH":
             cmd = 'rsync -avzP --timeout=30 -e \'ssh -i {5} -p {0}\' {1} {4}@{2}:{3}'.format(self.port,
-                                                                                         data, self.ip, self.recv_dir, self.user, self.rsakey)
+                                                                                             data, self.ip, self.recv_dir, self.user, self.rsakey)
             ret = os.system(cmd)
             if ret == 0:
                 print("push file sucess")
@@ -343,3 +344,52 @@ class RemoteServer(RemoteHub):
                 print("push file error.ret={}".format(ret))
         else:
             print("remote server type {} is not support!".format(self.srv_type))
+
+
+def setup_logger(name, log_file, log_level=logging.INFO, log_format=None, date_format=None, console_logging=True):
+    """
+    创建并返回一个配置好的logger。
+
+    :param name: logger的名称。
+    :param log_file: 日志文件的路径。
+    :param log_level: 日志级别，默认为 logging.INFO。
+    :param log_format: 日志格式字符串。
+    :param date_format: 日期格式字符串。
+    :param console_logging: 是否在控制台也打印日志。
+    :return: 配置好的logger。
+    """
+    # 如果日志文件目录不存在，创建它
+    log_dir = os.path.dirname(log_file)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    # 如果未指定日志格式，使用默认格式
+    if log_format is None:
+        log_format = '%(asctime)s [%(levelname)s] at %(lineno)d: %(message)s'
+
+    # 如果未指定日期格式，使用默认格式
+    if date_format is None:
+        date_format = '%Y-%m-%d(%a)%H:%M:%S'
+
+    # 创建一个新的logger实例
+    logger = logging.getLogger(name)
+    logger.setLevel(log_level)
+
+    # 创建文件处理程序
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(logging.Formatter(
+        log_format, datefmt=date_format))
+
+    # 添加文件处理程序到logger
+    logger.addHandler(file_handler)
+
+    # 如果需要在控制台打印日志，添加一个 StreamHandler
+    if console_logging:
+        console = logging.StreamHandler()
+        console.setLevel(log_level)
+        console_formatter = logging.Formatter(
+            '%(asctime)s [%(levelname)-8s] %(message)s')
+        console.setFormatter(console_formatter)
+        logger.addHandler(console)
+
+    return logger

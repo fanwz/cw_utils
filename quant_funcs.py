@@ -50,5 +50,23 @@ def get_inst_info(inst):
     return (prd, endmon)
 
 
+def get_day_night_period():
+    '''
+    night:>20:00:00 or < 2:30:00
+    '''
+    nt = int(time.strftime("%H%M%S", time.localtime()))
+    if nt > 200000 or nt < 23000:
+        return "night"
+    else:
+        return "day"
+
+
+def check_new_tradingday(checkday):
+    if get_tradingday() > checkday:
+        return True
+    else:
+        return False
+
+
 if __name__ == "__main__":
     print(get_tradingday())
