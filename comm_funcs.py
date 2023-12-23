@@ -1,4 +1,5 @@
 import time
+import datetime
 import psutil
 import sys
 import os
@@ -28,7 +29,14 @@ def get_dir_list(tg_dir):
 
 
 def get_timestamp(fmt="%Y-%m-%d %H:%M:%S"):
-    return time.strftime(fmt, time.localtime())
+    # return time.strftime(fmt, time.localtime())
+
+    # 将时间戳转换为datetime对象
+    dt_object = datetime.datetime.fromtimestamp(time.time())
+
+    # 格式化日期和时间
+    # 你可以根据需要更改格式字符串
+    return dt_object.strftime(fmt)
 
 
 def get_all_processes(filter_str, by="name"):
@@ -373,23 +381,25 @@ def setup_logger(name, log_file, log_level=logging.INFO, log_format=None, date_f
 
     # 创建一个新的logger实例
     logger = logging.getLogger(name)
-    logger.setLevel(log_level)
 
-    # 创建文件处理程序
-    file_handler = logging.FileHandler(log_file)
-    file_handler.setFormatter(logging.Formatter(
-        log_format, datefmt=date_format))
+    if not logger.handlers:  # 检查是否已经添加了处理程序
+        logger.setLevel(log_level)
 
-    # 添加文件处理程序到logger
-    logger.addHandler(file_handler)
+        # 创建文件处理程序
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(logging.Formatter(
+            log_format, datefmt=date_format))
 
-    # 如果需要在控制台打印日志，添加一个 StreamHandler
-    if console_logging:
-        console = logging.StreamHandler()
-        console.setLevel(log_level)
-        console_formatter = logging.Formatter(
-            '%(asctime)s [%(levelname)-8s] %(message)s')
-        console.setFormatter(console_formatter)
-        logger.addHandler(console)
+        # 添加文件处理程序到logger
+        logger.addHandler(file_handler)
+
+        # 如果需要在控制台打印日志，添加一个 StreamHandler
+        if console_logging:
+            console = logging.StreamHandler()
+            console.setLevel(log_level)
+            console_formatter = logging.Formatter(
+                '%(asctime)s [%(levelname)-8s] %(message)s')
+            console.setFormatter(console_formatter)
+            logger.addHandler(console)
 
     return logger

@@ -11,6 +11,7 @@ def generate_key():
     # generate Fernet key
     return Fernet.generate_key()
 
+
 def encrypt_str_data(str_data, key):
     # generate by chatgpt-4
     # encrypt string data
@@ -19,6 +20,7 @@ def encrypt_str_data(str_data, key):
     encrypted_str = f.encrypt(str_bytes)
     return encrypted_str
 
+
 def decrypt_str_data(encrypted_str, key):
     # generate by chatgpt-4
     # decrypt string data
@@ -26,6 +28,7 @@ def decrypt_str_data(encrypted_str, key):
     decrypted_str_bytes = f.decrypt(encrypted_str)
     decrypted_str = decrypted_str_bytes.decode("utf-8")
     return decrypted_str
+
 
 def encrypt_json_data(json_data, key):
     # generate by chatgpt-4
@@ -48,6 +51,29 @@ def decrypt_json_data(encrypted_json, key):
     return decrypted_json_data
 
 
+def convert_dict_byte2str(byte_dict, value_dict=True, key_encrypt="", value_encrypt=""):
+    converted_data = {}
+    for key, value in byte_dict.items():
+        # 将键和值从 bytes 转换为 str
+        if key_encrypt == "":
+            str_key = key.decode('utf-8')
+        else:
+            str_key = decrypt_str_data(key, key_encrypt)
+
+        if value_encrypt == "":
+            if value_dict:
+                str_value = json.loads(value.decode('utf-8'))
+            else:
+                str_value = value.decode('utf-8')
+        else:
+            if value_dict:
+                str_value = decrypt_json_data(value, value_encrypt)
+            else:
+                str_value = decrypt_str_data(value, value_encrypt)
+        converted_data[str_key] = str_value
+    return converted_data
+
+
 class RedisApi():
     '''
     {
@@ -66,7 +92,7 @@ class RedisApi():
                              port=config["port"],
                              username=config['user'],
                              password=config['password'],
-                             db=0)
+                             db=config['db'])
 
     def check_connection(self):
         try:
@@ -123,7 +149,7 @@ class RedisApi():
 
     def get_all_keys(self):
         return self.s.keys("*")
-    
+
     def get_all_keys_and_show(self):
         for key in self.get_all_keys():
             rtype = self.s.type(key).decode('utf-8')
@@ -169,7 +195,7 @@ class RedisApi():
 
         if ret == 0:
             print("nothing delete.hash={},keys={}".format(hash, keys))
-    
+
     def clear_all_data(self):
         self.s.flushall()
 
