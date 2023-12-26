@@ -108,6 +108,7 @@ class RedisApi():
             print("publish fail!")
 
     def subscribe(self, channel, callback, sleep=0.001):
+        # todo:need to handle disconnection and re-subscription
         pubsub = self.s.pubsub()
         pubsub.subscribe(
             **{channel: lambda message: callback(message["data"])})
@@ -125,10 +126,14 @@ class RedisApi():
 
         def run_pubsub(pubsub_instance):
             while not stop_event.is_set():
-                message = pubsub_instance.get_message()
-                if message:
-                    callback(message['data'])
-                time.sleep(sleep)
+                try:
+                    message = pubsub_instance.get_message()
+                    if message:
+                        callback(message['data'])
+                    time.sleep(sleep)
+                except Exception as e:
+                    print("run_pubsub exception!msg:{}".format(e))
+                    time.sleep(1)
 
         pubsub_thread = threading.Thread(target=run_pubsub, args=(pubsub,))
         pubsub_thread.daemon = True
