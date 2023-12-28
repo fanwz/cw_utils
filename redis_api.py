@@ -88,11 +88,16 @@ class RedisApi():
 
     def __init__(self, config: dict) -> None:
         # decode_responses=self.encrypt the Fernet en de should input bytes!
-        self.s = redis.Redis(host=config["host"],
-                             port=config["port"],
-                             username=config['user'],
-                             password=config['password'],
-                             db=config['db'])
+        self.config = config
+        self.s = self.create_redis_client()
+
+    def create_redis_client(self):
+        return redis.Redis(host=self.config["host"],
+                           port=self.config["port"],
+                           username=self.config['user'],
+                           password=self.config['password'],
+                           db=self.config['db'],
+                           socket_keepalive=True)
 
     def check_connection(self):
         try:
@@ -119,23 +124,51 @@ class RedisApi():
         pubsub_thread = threading.Thread(target=run_pubsub, args=(pubsub,))
         pubsub_thread.start()
 
-    def subscribe(self, channel, callback, stop_event, sleep=0.001):
-        pubsub = self.s.pubsub()
-        pubsub.subscribe(
-            **{channel: lambda message: callback(message["data"])})
-
-        def run_pubsub(pubsub_instance):
+    def subscribe(self, channel, callback, stop_event, sleep=0.001, timeout=600):
+        def run_pubsub():
             while not stop_event.is_set():
                 try:
-                    message = pubsub_instance.get_message()
-                    if message:
-                        callback(message['data'])
+
+                    last_message_time = time.time()
+                    pubsub = self.s.pubsub()
+                    pubsub.psubscribe(channel)
+
+                    while not stop_event.is_set():
+                        if self.check_connection() == False:
+                            print("{}:run_pubsub:connection lost,try reconnect!".format(
+                                time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+                            time.sleep(1)
+                            break
+                        try:
+                            message = pubsub.get_message()
+                            if message:
+                                if message["type"] == "message" or message["type"] == "pmessage":
+                                    callback(message['data'])
+                                else:
+                                    print("channel {} recv data:{}".format(
+                                        channel, message))
+                                last_message_time = time.time()
+                            elif time.time() - last_message_time > timeout:
+                                print("{}:run_pubsub:no message timeout,try reconnect!".format(
+                                    time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())))
+                                break
+                            time.sleep(sleep)
+                        except Exception as e:
+                            print(
+                                "pubsub.get_message exception!msg:{}".format(e))
+                            break
+
                     time.sleep(sleep)
+                    # do not recreate a new redis instance
+                    # self.s = self.create_redis_client()  # Reconnect
+
                 except Exception as e:
                     print("run_pubsub exception!msg:{}".format(e))
                     time.sleep(1)
+                    # do not recreate a new redis instance
+                    # self.s = self.create_redis_client()  # Reconnect
 
-        pubsub_thread = threading.Thread(target=run_pubsub, args=(pubsub,))
+        pubsub_thread = threading.Thread(target=run_pubsub)
         pubsub_thread.daemon = True
         pubsub_thread.start()
 
