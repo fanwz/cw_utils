@@ -236,6 +236,9 @@ class RedisApi():
 
     def clear_all_data(self):
         self.s.flushall()
+    
+    def clear_db_data(self):
+        self.s.flushdb()
 
     def polling_hashtable(self, hashtable, callback, stop_event, sleep=1):
         def run_polling(api, hashtable):
