@@ -97,7 +97,8 @@ class RedisApi():
                            username=self.config['user'],
                            password=self.config['password'],
                            db=self.config['db'],
-                           socket_keepalive=True)
+                           socket_keepalive=True,
+                           socket_timeout=5)
 
     def check_connection(self):
         try:
