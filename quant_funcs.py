@@ -37,6 +37,38 @@ def get_tradingday():
     return int(td_day.replace("-", ""))
 
 
+def get_tradingday_new():
+    from datetime import datetime, timedelta
+    # 获取当前时间和星期
+    now = datetime.now()
+    hour = now.hour
+    minute = now.minute
+    day_of_week = now.isoweekday()  # 1=Monday, 7=Sunday
+
+    # 定义函数，用于格式化日期为YYYYMMDD格式
+    def format_date(date): return date.strftime('%Y%m%d')
+
+    if hour < 2 or (hour == 2 and minute < 30):
+        # 当前时间小于2:30
+        if day_of_week in [6, 7]:  # Saturday or Sunday
+            # 下周一
+            return format_date(now + timedelta(days=(8 - day_of_week)))
+        else:
+            # 当天
+            return format_date(now)
+    elif hour < 20:
+        # 当前时间大于2:30且小于20:00，交易日是当天
+        return format_date(now)
+    else:
+        # 当前时间大于20:00
+        if day_of_week in [5, 6, 7]:  # Friday, Saturday, or Sunday
+            # 下周一
+            return format_date(now + timedelta(days=(8 - day_of_week)))
+        else:
+            # 第二天
+            return format_date(now + timedelta(days=1))
+
+
 def get_inst_info(inst):
     reg = r'^([A-Za-z]{1,2})(\d{3,4})$'
     m = re.match(reg, inst)
