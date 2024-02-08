@@ -54,7 +54,7 @@ def decrypt_json_data(encrypted_json, key):
 def convert_dict_byte2str(byte_dict, value_dict=True, key_encrypt="", value_encrypt=""):
     converted_data = {}
     for key, value in byte_dict.items():
-        # 将键和值从 bytes 转换为 str
+        # Convert keys and values from bytes to str.
         if key_encrypt == "":
             str_key = key.decode('utf-8')
         else:
@@ -99,6 +99,11 @@ class RedisApi():
                            db=self.config['db'],
                            socket_keepalive=True,
                            socket_timeout=5)
+
+    def select_db(self, db):
+        # When switching databases, reconnect to the new database.
+        self.config['db'] = db
+        self.s = self.create_redis_client()
 
     def check_connection(self):
         try:
@@ -237,7 +242,7 @@ class RedisApi():
 
     def clear_all_data(self):
         self.s.flushall()
-    
+
     def clear_db_data(self):
         self.s.flushdb()
 
