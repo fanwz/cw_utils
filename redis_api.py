@@ -214,12 +214,16 @@ class RedisApi():
             print(f"{key}: {value}")
 
     def get_from_hashtable(self, hash, *keys):
-        if len(keys) == 1:
-            return self.s.hget(hash, keys[0])
-        elif len(keys) > 1:
-            return self.s.hmget(hash, *keys)
-        else:
+        if not keys:
             return self.s.hgetall(hash)
+
+        raw_values = self.s.hmget(hash, keys)
+        result = {}
+        for key, value in zip(keys, raw_values):
+            if value is not None:
+                result[key] = value
+
+        return result
 
     def get_hash_keys(self, hash):
         return self.s.hkeys(hash)
