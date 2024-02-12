@@ -39,6 +39,42 @@ def get_timestamp(fmt="%Y-%m-%d %H:%M:%S"):
     return dt_object.strftime(fmt)
 
 
+def get_previous_day(date_str, date_format='%Y-%m-%d'):
+    the_date = datetime.datetime.strptime(date_str, date_format)
+
+    # 计算前一天的日期
+    previous_day = the_date - datetime.timedelta(days=1)
+
+    # 将结果转换回字符串格式
+    return previous_day.strftime(date_format)
+
+
+def timestr_to_unix_time(time_str, dt_format='%Y-%m-%d %H:%M:%S.%f', tz_str='UTC'):
+    # 直接计算时区偏移
+    offset = 0  # 默认为UTC，即偏移0小时
+    if tz_str.startswith('UTC'):
+        offset = int(tz_str[3:] or 0)  # 提取偏移小时数，如果没有指定则默认为0
+    tz = datetime.timezone(datetime.timedelta(hours=offset))
+
+    # 分割时间字符串以处理可能的毫秒
+    try:
+        # 如果格式中包含毫秒，直接解析
+        dt = datetime.datetime.strptime(time_str, dt_format)
+    except ValueError:
+        # 如果没有毫秒或格式不匹配，尝试解析没有毫秒的部分
+        dt = datetime.datetime.strptime(
+            time_str.split('.')[0], dt_format.split('.')[0])
+        if '.' in time_str:
+            ms = int(time_str.split('.')[1])
+            dt += datetime.timedelta(milliseconds=ms)
+
+    # 应用时区
+    dt = dt.replace(tzinfo=tz)
+
+    # 转换为UTC时间并计算Unix时间戳
+    return dt.astimezone(datetime.timezone.utc).timestamp()
+
+
 def get_all_processes(filter_str, by="name"):
     process_list = []
     for proc in psutil.process_iter():
