@@ -91,6 +91,8 @@ def get_all_processes(filter_str, by="name"):
                     if pinfo["name"].find(filter_str) == -1:
                         continue
                 elif by == "cmdline":
+                    if type(pinfo["cmdline"]) != list:
+                        continue
                     if len(pinfo["cmdline"]) == 0:
                         continue
                     cmdline_str = " ".join(pinfo["cmdline"])
