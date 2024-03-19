@@ -5,6 +5,7 @@ import sys
 import os
 from traceback import TracebackException
 import logging
+import paramiko
 
 ACTION_DATE = time.strftime("%Y-%m-%d", time.localtime())
 ACTION_DATE_INT = int(time.strftime("%Y%m%d", time.localtime()))
@@ -390,6 +391,32 @@ class RemoteServer(RemoteHub):
                 print("push file error.ret={}".format(ret))
         else:
             print("remote server type {} is not support!".format(self.srv_type))
+
+    def execute_command(self, command):
+        if self.srv_type.upper() == "SSH":
+            try:
+                client = paramiko.SSHClient()
+                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+                # 如果提供了RSA密钥，则使用密钥认证；否则使用密码认证
+                if self.rsakey and os.path.exists(os.path.expanduser(self.rsakey)):
+                    rsa_key = paramiko.RSAKey.from_private_key_file(
+                        os.path.expanduser(self.rsakey))
+                    client.connect(self.ip, port=self.port,
+                                   username=self.user, pkey=rsa_key)
+                else:
+                    client.connect(self.ip, port=self.port,
+                                   username=self.user, password=self.password)
+
+                stdin, stdout, stderr = client.exec_command(command)
+                output = stdout.read() + stderr.read()
+                client.close()
+                return output.decode('utf-8')
+            except Exception as e:
+                print(f"Failed to execute command: {e}")
+        else:
+            print("Remote server type {} is not supported for command execution.".format(
+                self.srv_type))
 
 
 def setup_logger(name, log_file, log_level=logging.INFO, log_format=None, date_format=None, console_logging=True):
