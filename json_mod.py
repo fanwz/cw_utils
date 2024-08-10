@@ -128,7 +128,7 @@ class JsonMod(object):
         # print(key, value)
         curr_level[key] = value
         # print(self.conf_data)
-        
+
         if save:
             self.__save_conf()
 
@@ -177,6 +177,70 @@ class JsonMod(object):
         del curr_level[key]
         self.__save_conf()
 
+    # 新增的获取字段索引位置的函数
+    def get_field_index(self, loc, target_field):
+        curr_level = self.__location(loc)
+        if curr_level is None:
+            return None
+
+        if isinstance(curr_level, dict):
+            keys = list(curr_level.keys())
+            if target_field in keys:
+                return keys.index(target_field)
+            else:
+                print("[Warning]the field({}) not found in the specified location".format(
+                    target_field))
+                return None
+        else:
+            print("[Error]the specified location does not contain a dictionary")
+            return None
+
+    def insert_fields(self, loc, new_fields, ref_field=None, before=True, save=True):
+        """
+        在指定 loc 下的 ref_field 字段位置前或后插入新的字段。
+
+        参数:
+        - loc: 用于定位插入位置的路径，是一个列表。
+        - new_fields: 新插入的字段，可以是一个字典，包含一个或多个 key-value 对。
+        - ref_field: 参考字段，指定在哪个字段的位置前或后插入新字段。如果不指定，则插入到 loc 下最后。
+        - before: 布尔值，决定新字段插入在 ref_field 的前（True）或后（False）。默认为 True。
+        - save: 布尔值，是否在操作后保存配置文件。默认为 True。
+        """
+        curr_level = self.__location(loc)
+        if curr_level is None:
+            return
+
+        if not isinstance(curr_level, dict):
+            print("[Error]The specified location does not contain a dictionary")
+            return
+
+        data_list = list(curr_level.items())
+
+        # 如果 ref_field 不为空，找到它的位置
+        if ref_field:
+            try:
+                ref_index = [key for key, _ in data_list].index(ref_field)
+                # 调整插入位置
+                insert_index = ref_index if before else ref_index + 1
+            except ValueError:
+                print("[Warning]The ref_field ({}) not found, appending to the end".format(
+                    ref_field))
+                insert_index = len(data_list)  # 如果找不到字段，则插入到最后
+        else:
+            insert_index = len(data_list)  # 如果没有指定 ref_field，则插入到最后
+
+        # 将 new_fields 插入到指定位置
+        for key, value in new_fields.items():
+            data_list.insert(insert_index, (key, value))
+            insert_index += 1  # 每次插入后索引加一
+
+        # 更新字典
+        curr_level.clear()
+        curr_level.update(data_list)
+
+        if save:
+            self.__save_conf()
+
 
 if __name__ == "__main__":
     cm = JsonMod("test.json")
@@ -186,3 +250,6 @@ if __name__ == "__main__":
     cm.add_new_para(["node"], {"newpara121": [1, 2]})
     cm.change_value(["node"], {"newpara121": "6666"})
     print(cm.get_value(["node"], "old_para"))
+    print(cm.get_field_index(["info"], "newpara1"))
+    
+    cm.insert_fields(["node"], {"insertnew": "1111","insertnew222": "2222"}, "inst", False)
