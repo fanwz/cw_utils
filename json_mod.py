@@ -79,7 +79,7 @@ class JsonMod(object):
                 return None
         return curr_level
 
-    def __save_conf(self):
+    def save_conf(self):
         saveconfig(self.conf_data, self.conf_file)
 
     def move_json_key_value(self, loc, move_key, move_index, save=True):
@@ -114,7 +114,7 @@ class JsonMod(object):
 
         # print(data)
         if save:
-            self.__save_conf()
+            self.save_conf()
 
     # loc:the location of target para.use list for store one by one level.
     # new_kv:new key-value pair.use object
@@ -130,7 +130,7 @@ class JsonMod(object):
         # print(self.conf_data)
 
         if save:
-            self.__save_conf()
+            self.save_conf()
 
     # loc:the location of target para.use list for store one by one level.
     # kv:key-value pair.use object. must check the key is exist!
@@ -148,7 +148,7 @@ class JsonMod(object):
         curr_level[key] = value
 
         if save:
-            self.__save_conf()
+            self.save_conf()
 
     # loc:the location of target para.use list for store one by one level.
     # key:the key need to get value
@@ -175,7 +175,7 @@ class JsonMod(object):
             return
 
         del curr_level[key]
-        self.__save_conf()
+        self.save_conf()
 
     # 新增的获取字段索引位置的函数
     def get_field_index(self, loc, target_field):
@@ -239,7 +239,7 @@ class JsonMod(object):
         curr_level.update(data_list)
 
         if save:
-            self.__save_conf()
+            self.save_conf()
 
 
 if __name__ == "__main__":
@@ -251,5 +251,6 @@ if __name__ == "__main__":
     cm.change_value(["node"], {"newpara121": "6666"})
     print(cm.get_value(["node"], "old_para"))
     print(cm.get_field_index(["info"], "newpara1"))
+    # cm.del_para(["node"], "newpara121")
     
-    cm.insert_fields(["node"], {"insertnew": "1111","insertnew222": "2222"}, "inst", False)
+    cm.insert_fields(["node"], {"insertnew": "8888888","insertnew222": "2222"}, "inst", False)
