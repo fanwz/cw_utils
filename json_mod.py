@@ -11,23 +11,23 @@ import sys
 import collections
 
 
-def py2_jsondump(data, filename, order=True):
+def py2_jsondump(data, filename, order=True, indent=2):
     with io.open(filename, 'w', encoding='utf-8') as f:
         # keep original order
         if order:
-            f.write(json.dumps(data, f, ensure_ascii=False, indent=2))
+            f.write(json.dumps(data, ensure_ascii=False, indent=indent))
         else:
-            f.write(json.dumps(data, f, ensure_ascii=False,
-                    sort_keys=True, indent=2))
+            f.write(json.dumps(data, ensure_ascii=False,
+                    sort_keys=True, indent=indent))
 
 
-def py3_jsondump(data, filename, order=True):
+def py3_jsondump(data, filename, order=True, indent=2):
     with io.open(filename, 'w', encoding='utf-8') as f:
         # keep original order
         if order:
-            return json.dump(data, f, ensure_ascii=False, indent=2)
+            return json.dump(data, f, ensure_ascii=False, indent=indent)
         else:
-            return json.dump(data, f, ensure_ascii=False, sort_keys=True, indent=2)
+            return json.dump(data, f, ensure_ascii=False, sort_keys=True, indent=indent)
 
 
 def jsonload(filename, order=True):
@@ -54,8 +54,8 @@ def loadconfig(config):
         return {}
 
 
-def saveconfig(config, path):
-    jsondump(config, path)
+def saveconfig(config, path, indent=2):
+    jsondump(config, path, True, indent)
 
 
 class JsonMod(object):
@@ -252,5 +252,6 @@ if __name__ == "__main__":
     print(cm.get_value(["node"], "old_para"))
     print(cm.get_field_index(["info"], "newpara1"))
     # cm.del_para(["node"], "newpara121")
-    
-    cm.insert_fields(["node"], {"insertnew": "8888888","insertnew222": "2222"}, "inst", False)
+
+    cm.insert_fields(
+        ["node"], {"insertnew": "8888888", "insertnew222": "2222"}, "inst", False)
